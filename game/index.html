@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Brodie Classroom Game</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; color: #222; }
+  h1 { text-align: center; }
+  .student { margin-bottom: 5px; }
+  button { margin-left: 5px; }
+  .prompt { background: #fff; padding: 10px; border-radius: 8px; margin: 10px 0; }
+  .results { background: #fff; padding: 10px; border-radius: 8px; margin: 10px 0; }
+</style>
+</head>
+<body>
+<h1>The Prime Classroom with Miss Jean Brodie</h1>
+<img src="miss_brodie.png" alt="Miss Jean Brodie" style="display:block; margin:10px auto; max-width:300px; border-radius:8px;">
+<div id="game">
+  <div>
+    <label>Student name: <input type="text" id="newStudent" /></label>
+    <button onclick="addStudent()">Add Student</button>
+  </div>
+  <div style="margin:5px 0; font-style:italic; font-size:0.9em;">
+    LP = Loyalty Points
+  </div>
+  <div id="students"></div>
+  <div class="prompt" id="promptArea">Click 'Start Round' to begin.</div>
+  <button onclick="startRound()">Start Round</button>
+  <button onclick="nextRound()">Next Round</button>
+  <button onclick="resetGame()">Reset Game</button>
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+let students = [];
+let round = 0;
+const maxRounds = 5;
+let prompts = [
+  "Social media weakens the soul. It's all algorithms! Only the weak use them, girls. Follow me. ",
+  "Artificial Intelligence cannot replace genius—one must cultivate it gloriously. We cannot be one who is taken over.",
+  "The mediocre take tests. Why does the score on the SAT matter? What does that do to your lives? The chosen make history. To which do you belong?",
+  "Beauty and intellect are instruments of power, my set. Learn to wield them. Use them. Dear, have you put on some powder today?",
+  "Do not mistaken Google as your knowledge, your wisdom. Your wisdom shall not be in the search bar, but in your brains, girls."
+];
+
+
+function renderStudents() {
+  const container = document.getElementById('students');
+  container.innerHTML = '';
+  students.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'student';
+    div.innerHTML = `${s.name} (LP: ${s.lp}) ` +
+      `<button onclick="choose('${i}','agree')">Agree (+1)</button>` +
+      `<button onclick="choose('${i}','question')">Question (0)</button>` +
+      `<button onclick="choose('${i}','resist')">Resist (-1)</button>`;
+    container.appendChild(div);
+  });
+}
+
+function addStudent() {
+  const input = document.getElementById('newStudent');
+  if(input.value.trim() === '') return;
+  students.push({ name: input.value.trim(), lp: 3, choice: null });
+  input.value = '';
+  renderStudents();
+}
+
+function startRound() {
+  if(students.lenth === 0) return;
+  document.getElementById('promptArea').innerText = prompts[round % prompts.length];
+  students.forEach(s => s.choice = null);
+  document.getElementById('results').innerText = '';
+  renderStudents();
+}
+
+function choose(index, choice) {
+  index = Number(index);
+  students[index].choice = choice;
+  renderStudents();
+}
+
+function nextRound() {
+  students.forEach(s => {
+    if(s.choice==='agree') s.lp += 1;
+    else if(s.choice==='resist') s.lp -=1;
+    s.choice = null;
+  });
+  round++;
+  if(round >= maxRounds){
+    showResults();
+  } else {
+    startRound();
+  }
+}
+
+function showResults(){
+  let sorted = [...students].sort((a,b)=>b.lp-a.lp);
+  const resultsDiv = document.getElementById('results');
+  const mostLoyal = sorted[0];
+  const likelyBetrayer = sorted[sorted.length -1]; 
+
+  resultsDiv.innerHTML = '<h3>Results:</h3>' +
+    `Most Loyal: ${mostLoyal.name} (LP:${mostLoyal.lp})<br>`  +
+    `Likely Betrayer: ${likelyBetrayer.name} (LP:${likelyBetrayer.lp})<br><br>`+
+    `<strong>Miss Brodie:</strong> Oh, it's ${likelyBetrayer.name} that betrayed me?`
+}
+
+function resetGame(){
+  students = []; 
+  round=0;
+  document.getElementById('results').innerText='';
+  document.getElementById('promptArea').innerText = "Click 'Start Round' to begin."
+  renderStudents();
+}
+</script>
+</body>
+</html>
